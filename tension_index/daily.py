@@ -16,12 +16,12 @@ from __future__ import annotations
 import logging
 import os
 from concurrent.futures import ThreadPoolExecutor
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 
 import numpy as np
 import pandas as pd
 
-from . import docapi, queries, series
+from . import fulltext, queries, series
 from .gdelt_raw import process_slot, slots_for_day
 from .score import daily_shares_from_slots
 
@@ -50,23 +50,12 @@ def raw_day(day: str, workers: int = 8) -> pd.DataFrame:
     return series.raw_shares(daily)
 
 
-def fulltext_window(end_day: str, days: int, plan_path: str) -> pd.DataFrame:
-    end = datetime.strptime(end_day, "%Y-%m-%d")
-    start = end - timedelta(days=days - 1)
-    frames = {}
-    for label, q in queries.plan_from_file(plan_path):
-        df = docapi.timeline(q, start.strftime("%Y%m%d000000"), end.strftime("%Y%m%d235959"))
-        if df.attrs.get("date_resolution") not in ("day", None):
-            df = df.resample("D").sum()
-        frames[label] = df["value"]
-    counts = queries.combine_pieces(pd.DataFrame(frames).fillna(0))
-    counts.index = counts.index.normalize()
-    return series.fulltext_shares(counts)
-
-
 def run(day: str, csv_path: str, norm_path: str, ft_days: int = 10,
-        with_fulltext: bool = True, with_raw: bool = True, plan_path: str | None = None) -> pd.DataFrame:
-    plan_path = plan_path or os.path.join(os.path.dirname(norm_path), "fulltext_plan.json")
+        with_fulltext: bool = True, with_raw: bool = True, plan_path: str | None = None,
+        counts_path: str | None = None, ft_budget_s: float = 1800) -> pd.DataFrame:
+    data_dir = os.path.dirname(norm_path)
+    plan_path = plan_path or os.path.join(data_dir, "fulltext_plan.json")
+    counts_path = counts_path or os.path.join(data_dir, "history_fulltext.csv")
     norm = series.load_norm(norm_path)
     composite = norm.get("composite", ["fulltext", "headline"])
     old = pd.DataFrame(columns=COLUMNS)
@@ -80,20 +69,25 @@ def run(day: str, csv_path: str, norm_path: str, ft_days: int = 10,
     df = old.combine_first(new) if not old.empty else new
     df.update(new)  # the freshly computed raw shares win for the target day
 
-    if with_fulltext:
+    if with_fulltext and os.path.exists(plan_path):
+        plan = queries.plan_from_file(plan_path)
         try:
-            ft = fulltext_window(day, ft_days, plan_path)
-            df = df.combine_first(ft)
-            df.update(ft)
+            n = fulltext.pull_window(plan, day, ft_days, counts_path, ft_budget_s)
+            log.info("full-text: refreshed %d/%d query pieces", n, len(plan))
         except Exception as exc:  # noqa: BLE001 - keep the raw-file series even if the API fails
-            log.error("full-text pull failed, keeping previous values: %s", exc)
+            log.error("full-text pull failed, keeping stored counts: %s", exc)
+        start = pd.Timestamp(day) - pd.Timedelta(days=ft_days + 60)  # coverage needs 8 prior weeks
+        ft = fulltext.shares(fulltext.load_counts(counts_path), [lbl for lbl, _ in plan])
+        ft = ft.loc[start:]
+        ft_cols = [c for c in ft.columns]
+        df = df.combine_first(ft)
+        df.loc[ft.index, ft_cols] = ft[ft_cols]
 
     df = df.sort_index()
-    df["ft_coverage"] = series.coverage(df["ft_english_articles"].astype(float))
     df = series.apply_normalisation(df.astype({c: float for c in df.columns
                                                if c not in ("tension_sources", "computed_at")}, errors="ignore"),
                                     norm, composite)
-    stamp = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+    stamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     touched = df.index >= pd.Timestamp(day) - pd.Timedelta(days=ft_days - 1)
     df.loc[touched, "computed_at"] = stamp
     df.index.name = "date"

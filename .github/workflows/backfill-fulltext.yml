@@ -59,3 +59,20 @@ jobs:
           wait "$pid" || echo "build_history exited with $?"
           tail -n 40 logs/backfill-fulltext.log
           commit_progress "finished"
+
+      - name: Rebuild the index with the full-text component and re-validate
+        # Only once every category is in (build_history logs this line).
+        run: |
+          if ! grep -q "all categories done" logs/backfill-fulltext.log; then
+            echo "full-text history incomplete; re-run this workflow to resume"
+            exit 0
+          fi
+          python scripts/rebuild_daily.py
+          python scripts/validate.py
+          git add data/tension_daily.csv data/normalisation.json data/raw_slots_daily.csv validation
+          git diff --cached --quiet && exit 0
+          git commit -m "Rebuild tension index with full-text component; refresh validation"
+          for i in 1 2 3; do
+            git pull --rebase origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && break
+            sleep $((i * 10))
+          done

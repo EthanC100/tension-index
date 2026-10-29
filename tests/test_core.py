@@ -59,3 +59,25 @@ def test_boolean_queries_are_english_and_exclude():
     q = queries.boolean_query("war_threats")
     assert q.endswith("sourcelang:english")
     assert "-movie" in q and "threatened" in q and "*" not in q
+
+
+def test_fulltext_upsert_and_complete_days(tmp_path):
+    from tension_index import fulltext
+    path = str(tmp_path / "counts.csv")
+    idx = pd.date_range("2024-01-01", periods=70, freq="D")
+    labels = ["english_total"] + [f"{c}#0" for c, *_ in wordlists.CATEGORIES]
+    for lbl in labels:
+        v = 10000.0 if lbl == "english_total" else 100.0
+        fulltext.upsert_counts(path, lbl, pd.DataFrame({"value": v, "norm": 30000.0}, index=idx))
+    # Re-pull one piece for the last 5 days with new values: rows are replaced, not duplicated.
+    fulltext.upsert_counts(path, "war_threats#0",
+                           pd.DataFrame({"value": 300.0, "norm": 1.0}, index=idx[-5:]))
+    counts = fulltext.load_counts(path)
+    assert len(counts) == len(labels) * len(idx)
+    sh = fulltext.shares(counts, labels)
+    assert abs(sh.loc["2024-01-10", "ft_share_war_threats"] - 0.01) < 1e-12
+    assert abs(sh.loc[idx[-1], "ft_share_war_threats"] - 0.03) < 1e-12
+    # A day missing one piece gets no full-text share at all.
+    counts = counts[~((counts["category"] == "terror_acts#0") & (counts["date"] == "2024-01-20"))]
+    sh = fulltext.shares(counts, labels)
+    assert np.isnan(sh.loc["2024-01-20", "ft_share_any"])

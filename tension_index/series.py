@@ -101,6 +101,9 @@ def fit_normalisation(df: pd.DataFrame, gpr: pd.DataFrame) -> dict:
             s = base[col]
             if comp == "fulltext":
                 s = s[ft_ok(base)]
+            s = s.dropna()
+            if len(s) < 100:  # component not available over the base period
+                continue
             norm["share_base_mean"][col] = float(s.mean())
             # Day-of-week factors (mean share on each weekday / overall mean).
             # Online news shares of conflict coverage rise at weekends while
@@ -152,9 +155,14 @@ def apply_normalisation(df: pd.DataFrame, norm: dict, composite: list[str]) -> p
     out["tension_index"] = combine(composite, "").fillna(combine(fallback, ""))
     out["tension_index_threats"] = combine(sub, "_threats")
     out["tension_index_acts"] = combine(sub, "_acts")
-    # GPR-scale nowcast: the weekday-neutral index with GPR's own weekday
-    # pattern put back, for direct comparison with the published daily GPR.
-    out["gpr_nowcast"] = out["tension_index"] * np.asarray(norm.get("gpr_dow_factor", [1.0] * 7))[wd]
+    # GPR-scale nowcast for day t: GPR's day-t newspapers mix same-day and
+    # previous-day news (online news leads print by about a day), so the
+    # nowcast averages the index on t and t-1, then puts GPR's own weekday
+    # pattern back for direct comparison with the published daily GPR.
+    ti = out["tension_index"]
+    prev = ti.shift(1, freq="D").reindex(out.index)
+    out["gpr_nowcast"] = (pd.concat([ti, prev], axis=1).mean(axis=1, skipna=True).where(ti.notna())
+                          * np.asarray(norm.get("gpr_dow_factor", [1.0] * 7))[wd])
     srcs = []
     for _, r in out.iterrows():
         used = [c for c in composite if pd.notna(r.get(f"idx_{c}"))]

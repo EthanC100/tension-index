@@ -10,7 +10,7 @@ from __future__ import annotations
 import argparse
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 
 import matplotlib
 matplotlib.use("Agg")
@@ -54,8 +54,16 @@ def md_table(df: pd.DataFrame, floatfmt: str = "{:.3f}") -> str:
     cols = list(df.columns)
     lines = ["| " + " | ".join([df.index.name or ""] + cols) + " |",
              "|" + "---|" * (len(cols) + 1)]
-    for idx, row in df.iterrows():
-        vals = [floatfmt.format(v) if isinstance(v, (float, np.floating)) else str(v) for v in row]
+    for idx in df.index:
+        vals = []
+        for c in cols:
+            v = df.at[idx, c]
+            if pd.api.types.is_integer_dtype(df[c]):
+                vals.append(f"{int(v):+d}" if "lag" in c else str(int(v)))
+            elif isinstance(v, (float, np.floating)):
+                vals.append("" if v != v else floatfmt.format(v))
+            else:
+                vals.append(str(v))
         lines.append("| " + " | ".join([str(idx)] + vals) + " |")
     return "\n".join(lines)
 
@@ -77,7 +85,7 @@ def main() -> None:
     gpr = add_seasonally_adjusted(gpr, BASE_START, BASE_END)
 
     report = [f"# Validation against the daily GPR index\n",
-              f"Generated {datetime.utcnow():%Y-%m-%d %H:%M} UTC.  "
+              f"Generated {datetime.now(timezone.utc):%Y-%m-%d %H:%M} UTC.  "
               f"GPR vintage ends {gpr_end:%Y-%m-%d}; tension index ends {ours.index.max():%Y-%m-%d}.\n"]
     summary_rows = []
     overview = []
@@ -160,7 +168,7 @@ def main() -> None:
         fig, ax = plt.subplots(figsize=(9, 3.6))
         ax.plot(m.index, m["GPRD"], label="GPR daily (monthly mean)", color="#444")
         ax.plot(m.index, m["tension_index"], label="tension index (monthly mean)", color="#c0392b")
-        ax.set_ylabel("index (base period = 100)")
+        ax.set_ylabel("index (GPR scale)")
         ax.legend(frameon=False)
         fig.tight_layout()
         fig.savefig(os.path.join(args.outdir, "overview_monthly.png"), dpi=130)
@@ -171,11 +179,33 @@ def main() -> None:
         fig, ax = plt.subplots(figsize=(9, 3.6))
         ax.plot(w.index, w["GPRD"], label="GPR daily (weekly mean)", color="#444")
         ax.plot(w.index, w["tension_index"], label="tension index (weekly mean)", color="#c0392b")
-        ax.set_ylabel("index")
+        ax.set_ylabel("index (GPR scale)")
         ax.legend(frameon=False)
         fig.tight_layout()
         fig.savefig(os.path.join(args.outdir, "overview_weekly_recent.png"), dpi=130)
         plt.close(fig)
+
+    # Stability: daily / weekly / monthly correlation of the headline index by
+    # sub-period and by calendar year.
+    if "tension_index" in ours:
+        rows = []
+        x_all, y_all = ours["tension_index"], gpr["GPRD_SA"]
+        periods = [("2015-02 to 2019-08 (theme fallback)", "2015-01-01", "2019-08-31"),
+                   (f"2019-09 to {gpr_end:%Y-%m} (headline era)", "2019-09-01", str(gpr_end.date()))]
+        periods += [(str(yr), f"{yr}-01-01", f"{yr}-12-31") for yr in range(2015, gpr_end.year + 1)]
+        for name, a, b in periods:
+            t = corr_by_frequency(x_all.loc[a:b], y_all.loc[a:b])
+            if t.loc["daily", "n"] < 60:
+                continue
+            ll = lead_lag_summary(cross_correlation(x_all.loc[a:b], y_all.loc[a:b], max_lag=7, transform="detrend"))
+            rows.append({"period": name, "days": int(t.loc["daily", "n"]),
+                         "daily": t.loc["daily", "pearson"], "weekly": t.loc["weekly", "pearson"],
+                         "monthly": t.loc["monthly", "pearson"] if t.loc["monthly", "n"] >= 6 else float("nan"),
+                         "best_lag": ll["best_lag"]})
+        sub = pd.DataFrame(rows).set_index("period")
+        sub.to_csv(os.path.join(args.outdir, "corr_by_period.csv"))
+        report.append("\n## tension_index vs GPRD_SA by period\n")
+        report.append(md_table(sub) + "\n")
 
     with open(os.path.join(args.outdir, "report.md"), "w") as fh:
         fh.write("\n".join(report))

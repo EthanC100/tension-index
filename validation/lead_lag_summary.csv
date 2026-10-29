@@ -1,8 +1,8 @@
 pair,transform,best_lag,corr_at_best,corr_at_0,verdict
-"gpr_nowcast vs GPRD (both as published, with weekday pattern)",level,0,0.6620008437741786,0.6620008437741786,matches
-"gpr_nowcast vs GPRD (both as published, with weekday pattern)",log,0,0.6008006822876398,0.6008006822876398,matches
-"gpr_nowcast vs GPRD (both as published, with weekday pattern)",detrend,0,0.5182367978999817,0.5182367978999817,matches
-"gpr_nowcast vs GPRD (both as published, with weekday pattern)",diff,0,0.4014870671403778,0.4014870671403778,matches
+"gpr_nowcast vs GPRD (both as published, with weekday pattern)",level,0,0.6911421623397523,0.6911421623397523,matches
+"gpr_nowcast vs GPRD (both as published, with weekday pattern)",log,0,0.6304778821144058,0.6304778821144058,matches
+"gpr_nowcast vs GPRD (both as published, with weekday pattern)",detrend,0,0.557283076064778,0.557283076064778,matches
+"gpr_nowcast vs GPRD (both as published, with weekday pattern)",diff,0,0.478213230363492,0.478213230363492,matches
 tension_index vs GPRD_SA,level,1,0.6033650913953549,0.5872413666474408,leads by 1 day(s)
 tension_index vs GPRD_SA,log,1,0.4998897335426114,0.4790718527681054,leads by 1 day(s)
 tension_index vs GPRD_SA,detrend,1,0.3050250374782596,0.26739269626431733,leads by 1 day(s)

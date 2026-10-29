@@ -1,6 +1,6 @@
 # Validation against the daily GPR index
 
-Generated 2026-10-29 02:41 UTC.  GPR vintage ends 2026-10-26; tension index ends 2026-10-28.
+Generated 2026-10-29 02:46 UTC.  GPR vintage ends 2026-10-26; tension index ends 2026-10-28.
 
 
 ## Summary
@@ -9,7 +9,7 @@ Pearson correlations of index levels.  "dow-adj" removes each series' day-of-wee
 
 | series vs GPR | sample | daily r | daily r (dow-adj) | weekly r | monthly r | best lag (levels) | best lag (detrended) | r at best lag (detrended) | verdict (detrended) |
 |---|---|---|---|---|---|---|---|---|---|
-| gpr_nowcast vs GPRD (both as published, with weekday pattern) | 2015-02 to 2026-10 | 0.662 | 0.601 | 0.769 | 0.811 | +0 | +0 | 0.518 | matches |
+| gpr_nowcast vs GPRD (both as published, with weekday pattern) | 2015-02 to 2026-10 | 0.691 | 0.637 | 0.772 | 0.812 | +0 | +0 | 0.557 | matches |
 | tension_index vs GPRD_SA | 2015-02 to 2026-10 | 0.587 | 0.590 | 0.770 | 0.815 | +1 | +1 | 0.305 | leads by 1 day(s) |
 | tension_index_threats vs GPRD_THREAT_SA | 2019-09 to 2026-10 | 0.398 | 0.399 | 0.695 | 0.776 | +1 | +1 | 0.206 | leads by 1 day(s) |
 | tension_index_acts vs GPRD_ACT_SA | 2019-09 to 2026-10 | 0.260 | 0.260 | 0.383 | 0.562 | +1 | +1 | 0.170 | matches |
@@ -26,38 +26,38 @@ Sample: 2015-02-19 to 2026-10-26, 4244 overlapping days.
 
 | frequency | n | pearson_level | spearman_level | pearson_log | spearman_log |
 |---|---|---|---|---|---|
-| daily | 4244.000 | 0.662 | 0.559 | 0.601 | 0.559 |
-| daily_dow_adj | 4244.000 | 0.601 | 0.416 | 0.481 | 0.419 |
-| weekly | 609.000 | 0.769 | 0.598 | 0.690 | 0.599 |
-| monthly | 141.000 | 0.811 | 0.677 | 0.746 | 0.657 |
+| daily | 4244 | 0.691 | 0.591 | 0.630 | 0.591 |
+| daily_dow_adj | 4244 | 0.637 | 0.459 | 0.521 | 0.464 |
+| weekly | 609 | 0.772 | 0.604 | 0.698 | 0.609 |
+| monthly | 141 | 0.812 | 0.672 | 0.751 | 0.664 |
 
 ### Lead/lag structure (daily)
 
 Positive lag k means the tension index at day t is correlated with GPR at day t+k, i.e. the tension index leads.
 
-- **level**: best lag +0 (r=0.662; r at lag 0 = 0.662) → matches
-- **log**: best lag +0 (r=0.601; r at lag 0 = 0.601) → matches
-- **detrend**: best lag +0 (r=0.518; r at lag 0 = 0.518) → matches
-- **diff**: best lag +0 (r=0.401; r at lag 0 = 0.401) → matches
+- **level**: best lag +0 (r=0.691; r at lag 0 = 0.691) → matches
+- **log**: best lag +0 (r=0.630; r at lag 0 = 0.630) → matches
+- **detrend**: best lag +0 (r=0.557; r at lag 0 = 0.557) → matches
+- **diff**: best lag +0 (r=0.478; r at lag 0 = 0.478) → matches
 
-Predictive content on daily log changes (5 lags): adding tension-index lags to a regression of GPR on its own lags raises R² by 0.0655; the reverse raises R² by 0.0126.
+Predictive content on daily log changes (5 lags): adding tension-index lags to a regression of GPR on its own lags raises R² by 0.0885; the reverse raises R² by 0.0009.
 
 
 Cross-correlation table (lags −5…+5, level / log / detrend / diff):
 
 | lag | level | log | detrend | diff |
 |---|---|---|---|---|
-| -5 | 0.323 | 0.198 | -0.057 | -0.171 |
-| -4 | 0.313 | 0.187 | -0.062 | -0.022 |
-| -3 | 0.325 | 0.195 | -0.050 | -0.029 |
-| -2 | 0.366 | 0.228 | -0.011 | -0.190 |
-| -1 | 0.531 | 0.426 | 0.264 | 0.026 |
-| 0 | 0.662 | 0.601 | 0.518 | 0.401 |
-| 1 | 0.550 | 0.429 | 0.273 | 0.014 |
-| 2 | 0.386 | 0.246 | 0.019 | -0.172 |
-| 3 | 0.339 | 0.211 | -0.024 | -0.024 |
-| 4 | 0.320 | 0.198 | -0.046 | -0.037 |
-| 5 | 0.331 | 0.216 | -0.031 | -0.188 |
+| -5 | 0.342 | 0.216 | -0.046 | -0.182 |
+| -4 | 0.330 | 0.201 | -0.058 | -0.029 |
+| -3 | 0.341 | 0.208 | -0.048 | -0.042 |
+| -2 | 0.389 | 0.247 | 0.000 | -0.225 |
+| -1 | 0.561 | 0.458 | 0.302 | 0.051 |
+| 0 | 0.691 | 0.630 | 0.557 | 0.478 |
+| 1 | 0.552 | 0.436 | 0.273 | -0.016 |
+| 2 | 0.390 | 0.255 | 0.016 | -0.186 |
+| 3 | 0.344 | 0.216 | -0.035 | -0.036 |
+| 4 | 0.323 | 0.204 | -0.055 | -0.046 |
+| 5 | 0.339 | 0.227 | -0.032 | -0.218 |
 
 
 ## tension_index vs GPRD_SA
@@ -68,10 +68,10 @@ Sample: 2015-02-19 to 2026-10-26, 4244 overlapping days.
 
 | frequency | n | pearson_level | spearman_level | pearson_log | spearman_log |
 |---|---|---|---|---|---|
-| daily | 4244.000 | 0.587 | 0.416 | 0.479 | 0.416 |
-| daily_dow_adj | 4244.000 | 0.590 | 0.419 | 0.481 | 0.419 |
-| weekly | 609.000 | 0.770 | 0.609 | 0.689 | 0.598 |
-| monthly | 141.000 | 0.815 | 0.689 | 0.745 | 0.656 |
+| daily | 4244 | 0.587 | 0.416 | 0.479 | 0.416 |
+| daily_dow_adj | 4244 | 0.590 | 0.419 | 0.481 | 0.419 |
+| weekly | 609 | 0.770 | 0.609 | 0.689 | 0.598 |
+| monthly | 141 | 0.815 | 0.689 | 0.745 | 0.656 |
 
 ### Lead/lag structure (daily)
 
@@ -110,10 +110,10 @@ Sample: 2019-09-22 to 2026-10-26, 2570 overlapping days.
 
 | frequency | n | pearson_level | spearman_level | pearson_log | spearman_log |
 |---|---|---|---|---|---|
-| daily | 2570.000 | 0.398 | 0.355 | 0.363 | 0.357 |
-| daily_dow_adj | 2570.000 | 0.399 | 0.356 | 0.364 | 0.360 |
-| weekly | 370.000 | 0.695 | 0.624 | 0.700 | 0.663 |
-| monthly | 86.000 | 0.776 | 0.745 | 0.820 | 0.781 |
+| daily | 2570 | 0.398 | 0.355 | 0.363 | 0.357 |
+| daily_dow_adj | 2570 | 0.399 | 0.356 | 0.364 | 0.360 |
+| weekly | 370 | 0.695 | 0.624 | 0.700 | 0.663 |
+| monthly | 86 | 0.776 | 0.745 | 0.820 | 0.781 |
 
 ### Lead/lag structure (daily)
 
@@ -152,10 +152,10 @@ Sample: 2019-09-22 to 2026-10-26, 2570 overlapping days.
 
 | frequency | n | pearson_level | spearman_level | pearson_log | spearman_log |
 |---|---|---|---|---|---|
-| daily | 2570.000 | 0.260 | 0.359 | 0.332 | 0.347 |
-| daily_dow_adj | 2570.000 | 0.260 | 0.360 | 0.333 | 0.351 |
-| weekly | 370.000 | 0.383 | 0.556 | 0.569 | 0.582 |
-| monthly | 86.000 | 0.562 | 0.652 | 0.765 | 0.772 |
+| daily | 2570 | 0.260 | 0.359 | 0.332 | 0.347 |
+| daily_dow_adj | 2570 | 0.260 | 0.360 | 0.333 | 0.351 |
+| weekly | 370 | 0.383 | 0.556 | 0.569 | 0.582 |
+| monthly | 86 | 0.562 | 0.652 | 0.765 | 0.772 |
 
 ### Lead/lag structure (daily)
 
@@ -194,10 +194,10 @@ Sample: 2019-09-22 to 2026-10-26, 2570 overlapping days.
 
 | frequency | n | pearson_level | spearman_level | pearson_log | spearman_log |
 |---|---|---|---|---|---|
-| daily | 2570.000 | 0.406 | 0.427 | 0.421 | 0.426 |
-| daily_dow_adj | 2570.000 | 0.407 | 0.428 | 0.422 | 0.428 |
-| weekly | 370.000 | 0.648 | 0.665 | 0.702 | 0.698 |
-| monthly | 86.000 | 0.809 | 0.793 | 0.865 | 0.852 |
+| daily | 2570 | 0.406 | 0.427 | 0.421 | 0.426 |
+| daily_dow_adj | 2570 | 0.407 | 0.428 | 0.422 | 0.428 |
+| weekly | 370 | 0.648 | 0.665 | 0.702 | 0.698 |
+| monthly | 86 | 0.809 | 0.793 | 0.865 | 0.852 |
 
 ### Lead/lag structure (daily)
 
@@ -236,10 +236,10 @@ Sample: 2019-09-22 to 2026-10-26, 2570 overlapping days.
 
 | frequency | n | pearson_level | spearman_level | pearson_log | spearman_log |
 |---|---|---|---|---|---|
-| daily | 2570.000 | 0.497 | 0.491 | 0.486 | 0.491 |
-| daily_dow_adj | 2570.000 | 0.497 | 0.493 | 0.486 | 0.492 |
-| weekly | 370.000 | 0.744 | 0.726 | 0.766 | 0.754 |
-| monthly | 86.000 | 0.858 | 0.840 | 0.894 | 0.894 |
+| daily | 2570 | 0.497 | 0.491 | 0.486 | 0.491 |
+| daily_dow_adj | 2570 | 0.497 | 0.493 | 0.486 | 0.492 |
+| weekly | 370 | 0.744 | 0.726 | 0.766 | 0.754 |
+| monthly | 86 | 0.858 | 0.840 | 0.894 | 0.894 |
 
 ### Lead/lag structure (daily)
 
@@ -278,10 +278,10 @@ Sample: 2019-09-22 to 2026-10-26, 2570 overlapping days.
 
 | frequency | n | pearson_level | spearman_level | pearson_log | spearman_log |
 |---|---|---|---|---|---|
-| daily | 2570.000 | 0.675 | 0.589 | 0.597 | 0.590 |
-| daily_dow_adj | 2570.000 | 0.675 | 0.590 | 0.597 | 0.590 |
-| weekly | 370.000 | 0.855 | 0.820 | 0.823 | 0.826 |
-| monthly | 86.000 | 0.903 | 0.908 | 0.884 | 0.912 |
+| daily | 2570 | 0.675 | 0.589 | 0.597 | 0.590 |
+| daily_dow_adj | 2570 | 0.675 | 0.590 | 0.597 | 0.590 |
+| weekly | 370 | 0.855 | 0.820 | 0.823 | 0.826 |
+| monthly | 86 | 0.903 | 0.908 | 0.884 | 0.912 |
 
 ### Lead/lag structure (daily)
 
@@ -320,10 +320,10 @@ Sample: 2015-02-19 to 2026-10-26, 4244 overlapping days.
 
 | frequency | n | pearson_level | spearman_level | pearson_log | spearman_log |
 |---|---|---|---|---|---|
-| daily | 4244.000 | 0.443 | 0.340 | 0.388 | 0.340 |
-| daily_dow_adj | 4244.000 | 0.447 | 0.344 | 0.390 | 0.343 |
-| weekly | 609.000 | 0.580 | 0.462 | 0.550 | 0.464 |
-| monthly | 141.000 | 0.584 | 0.473 | 0.565 | 0.470 |
+| daily | 4244 | 0.443 | 0.340 | 0.388 | 0.340 |
+| daily_dow_adj | 4244 | 0.447 | 0.344 | 0.390 | 0.343 |
+| weekly | 609 | 0.580 | 0.462 | 0.550 | 0.464 |
+| monthly | 141 | 0.584 | 0.473 | 0.565 | 0.470 |
 
 ### Lead/lag structure (daily)
 
@@ -352,3 +352,23 @@ Cross-correlation table (lags −5…+5, level / log / detrend / diff):
 | 3 | 0.405 | 0.365 | 0.243 | -0.013 |
 | 4 | 0.391 | 0.346 | 0.211 | -0.004 |
 | 5 | 0.366 | 0.330 | 0.182 | -0.013 |
+
+
+## tension_index vs GPRD_SA by period
+
+| period | days | daily | weekly | monthly | best_lag |
+|---|---|---|---|---|---|
+| 2015-02 to 2019-08 (theme fallback) | 1653 | 0.343 | 0.575 | 0.622 | +1 |
+| 2019-09 to 2026-10 (headline era) | 2591 | 0.673 | 0.849 | 0.901 | +1 |
+| 2015 | 314 | 0.482 | 0.803 | 0.828 | +2 |
+| 2016 | 366 | 0.334 | 0.668 | 0.789 | +1 |
+| 2017 | 365 | 0.339 | 0.496 | 0.264 | +1 |
+| 2018 | 365 | 0.157 | 0.338 | 0.530 | -5 |
+| 2019 | 365 | 0.249 | 0.353 | 0.705 | +1 |
+| 2020 | 362 | 0.403 | 0.738 | 0.722 | +3 |
+| 2021 | 365 | 0.198 | 0.475 | 0.109 | +1 |
+| 2022 | 365 | 0.708 | 0.908 | 0.937 | +1 |
+| 2023 | 364 | 0.611 | 0.846 | 0.962 | +1 |
+| 2024 | 366 | 0.274 | 0.636 | 0.744 | +2 |
+| 2025 | 348 | 0.318 | 0.479 | 0.787 | +1 |
+| 2026 | 299 | 0.739 | 0.881 | 0.938 | +0 |
