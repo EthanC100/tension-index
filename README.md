@@ -277,6 +277,15 @@ Until then:
 * the index before 2019-09 is `theme`;
 * the validation figures above are for those components.
 
+When the rebuild runs, `validation/report.md` is regenerated with the
+full-text component included. The tables in this README stay as of
+2026-10-29.
+
+A run stops after about five hours. To resume, open *Actions → Backfill
+full-text history* and either re-run the latest run or use *Run workflow*
+once the workflow is on the default branch. Categories already pulled are
+skipped. Progress is visible in `logs/backfill-fulltext.log` on the branch.
+
 ## Daily operation
 
 [`.github/workflows/daily.yml`](.github/workflows/daily.yml) runs every day
