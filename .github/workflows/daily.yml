@@ -2,10 +2,10 @@ name: Daily tension index
 
 on:
   schedule:
-    # 06:40 UTC every day: yesterday's GDELT files are complete and the
-    # DOC API has indexed them.  (Minute chosen off the hour to avoid the
-    # GitHub cron rush.)
-    - cron: "40 6 * * *"
+    # 05:23 UTC every day.  GDELT's raw 15-minute files for the previous UTC
+    # day are complete by ~01:00 UTC; the full-text API usually follows
+    # within hours (later days revise it, see --fulltext-days).
+    - cron: "23 5 * * *"
   workflow_dispatch:
     inputs:
       date:
@@ -23,7 +23,7 @@ concurrency:
 jobs:
   score:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 50
     steps:
       - uses: actions/checkout@v4
 
@@ -47,12 +47,16 @@ jobs:
       - name: Commit and push
         run: |
           git config user.name "tension-index bot"
-          git config user.email "actions@users.noreply.github.com"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/tension_daily.csv
           if git diff --cached --quiet; then
             echo "nothing to commit"
             exit 0
           fi
-          git commit -m "data: tension index for $(tail -n 1 data/tension_daily.csv | cut -d, -f1)"
-          git pull --rebase origin "${GITHUB_REF_NAME}"
-          git push origin "HEAD:${GITHUB_REF_NAME}"
+          day="${{ github.event.inputs.date }}"
+          [ -n "$day" ] || day=$(date -u -d yesterday +%F)
+          git commit -m "data: tension index for ${day}"
+          for i in 1 2 3; do
+            git pull --rebase origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && break
+            sleep $((i * 10))
+          done

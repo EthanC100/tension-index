@@ -20,13 +20,19 @@ def corr_by_frequency(x: pd.Series, y: pd.Series, log: bool = False) -> pd.DataF
     if log:
         df = np.log(df.where(df > 0)).dropna()
     rows = []
-    for freq, rule in [("daily", None), ("weekly", "W-SUN"), ("monthly", "MS")]:
-        d = df if rule is None else df.resample(rule).mean().dropna()
+    dow = df - df.groupby(df.index.dayofweek).transform("mean")
+    for freq, rule in [("daily", None), ("daily_dow_adj", "DOW"), ("weekly", "W-SUN"), ("monthly", "MS")]:
+        if rule is None:
+            d = df
+        elif rule == "DOW":
+            d = dow  # both series demeaned by day of week
+        else:
+            d = df.resample(rule).mean().dropna()
         rows.append({
             "frequency": freq,
             "n": len(d),
             "pearson": d["x"].corr(d["y"]),
-            "spearman": d["x"].corr(d["y"], method="spearman"),
+            "spearman": d["x"].rank().corr(d["y"].rank()),
         })
     return pd.DataFrame(rows).set_index("frequency")
 

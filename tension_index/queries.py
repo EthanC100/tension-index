@@ -137,6 +137,74 @@ def union_boolean_query(english_only: bool = True, exclude: bool = True) -> str:
     return q + lang_clause(english_only)
 
 
+ENGLISH_TOTAL_QUERY = "sourcelang:english"
+
+# The DOC API rejects long queries ("Your query was too short or too long").
+# Category queries are therefore split into pieces that each fit; the counts
+# of a category's pieces are summed (see ``combine_pieces``).
+MAX_QUERY_CHARS = 1000
+
+
+def _chunks(items: list[str], n: int) -> list[list[str]]:
+    k = -(-len(items) // n)
+    return [items[i:i + k] for i in range(0, len(items), k)]
+
+
+def category_pieces(category: str, english_only: bool = True, exclude: bool = True,
+                    max_chars: int = MAX_QUERY_CHARS) -> list[str]:
+    """Boolean query for a category, split into the fewest pieces that each
+    fit ``max_chars``.  Pieces partition the topic x threat/act word grid."""
+    _name, topic, other, _op = next(c for c in W.CATEGORIES if c[0] == category)
+    t_forms, o_forms = expand_set(topic), expand_set(other)
+    suffix = (" " + exclusion_clause() if exclude else "") + lang_clause(english_only)
+    best = None
+    for nt in range(1, len(t_forms) + 1):
+        for no in range(1, len(o_forms) + 1):
+            pieces = [f"{_or_group(tc)} {_or_group(oc)}{suffix}"
+                      for tc in _chunks(t_forms, nt) for oc in _chunks(o_forms, no)]
+            if all(len(p) <= max_chars for p in pieces):
+                if best is None or len(pieces) < len(best):
+                    best = pieces
+                break
+    if best is None:
+        raise ValueError(f"cannot fit {category} into {max_chars} characters")
+    return best
+
+
+def full_text_plan(english_only: bool = True, exclude: bool = True,
+                   max_chars: int = MAX_QUERY_CHARS) -> list[tuple[str, str]]:
+    """(label, query) pairs pulled for the full-text series: the English
+    article total (the denominator) and every piece of the eight categories."""
+    plan = [("english_total", ENGLISH_TOTAL_QUERY)]
+    for cat, *_ in W.CATEGORIES:
+        for i, q in enumerate(category_pieces(cat, english_only, exclude, max_chars)):
+            plan.append((f"{cat}#{i}", q))
+    return plan
+
+
+def plan_from_file(path: str) -> list[tuple[str, str]]:
+    """The (label, query) plan saved by scripts/build_history.py."""
+    import json
+    with open(path) as fh:
+        saved = json.load(fh)
+    plan = [("english_total", ENGLISH_TOTAL_QUERY)]
+    for cat, *_ in W.CATEGORIES:
+        for i, q in enumerate(saved[cat]["queries"]):
+            plan.append((f"{cat}#{i}", q))
+    return plan
+
+
+def combine_pieces(counts):
+    """Sum piece columns ``cat#i`` into one column per category."""
+    import pandas as pd
+    out = pd.DataFrame(index=counts.index)
+    out["english_total"] = counts["english_total"]
+    for cat, *_ in W.CATEGORIES:
+        cols = [c for c in counts.columns if c.split("#")[0] == cat]
+        out[cat] = counts[cols].sum(axis=1) if cols else float("nan")
+    return out
+
+
 def _near_forms(forms: list[str]) -> list[str]:
     # near:"..." takes bare words; multi-word phrases are kept as their words.
     return [f.strip('"') for f in forms]
@@ -171,5 +239,6 @@ if __name__ == "__main__":  # quick inspection
         bq = boolean_query(cat)
         pq = proximity_queries(cat)
         print(f"{cat}: boolean {len(bq)} chars; proximity {len(pq)} request(s), {sum(map(len, pq))} chars")
-    print("union:", len(union_boolean_query()), "chars")
+    plan = full_text_plan()
+    print("full-text plan:", len(plan), "requests, longest", max(len(q) for _, q in plan), "chars")
     print(boolean_query("war_threats"))

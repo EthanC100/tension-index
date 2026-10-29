@@ -27,12 +27,14 @@ ROOT = os.path.join(os.path.dirname(__file__), "..")
 
 PAIRS = [
     # (label, our column, GPR column, earliest start)
-    ("tension_index vs GPRD", "tension_index", "GPRD", "2017-01-01"),
-    ("tension_threats vs GPRD_THREAT", "tension_threats", "GPRD_THREAT", "2017-01-01"),
-    ("tension_acts vs GPRD_ACT", "tension_acts", "GPRD_ACT", "2017-01-01"),
-    ("gkg_theme_index vs GPRD (2015-)", "gkg_theme_index", "GPRD", "2015-02-19"),
-    ("gkg_theme_index vs GPRD (2017-)", "gkg_theme_index", "GPRD", "2017-01-01"),
-    ("evt_share_conflict_mentions vs GPRD (2015-)", "evt_share_conflict_mentions", "GPRD", "2015-02-19"),
+    ("tension_index vs GPRD", "tension_index", "GPRD", "2015-01-01"),
+    ("tension_index_threats vs GPRD_THREAT", "tension_index_threats", "GPRD_THREAT", "2015-01-01"),
+    ("tension_index_acts vs GPRD_ACT", "tension_index_acts", "GPRD_ACT", "2015-01-01"),
+    ("idx_fulltext vs GPRD", "idx_fulltext", "GPRD", "2017-01-01"),
+    ("idx_headline vs GPRD", "idx_headline", "GPRD", "2019-09-01"),
+    ("idx_headline_and vs GPRD", "idx_headline_and", "GPRD", "2019-09-01"),
+    ("idx_headline_topic vs GPRD", "idx_headline_topic", "GPRD", "2019-09-01"),
+    ("idx_theme vs GPRD", "idx_theme", "GPRD", "2015-01-01"),
 ]
 
 
@@ -64,6 +66,7 @@ def main() -> None:
               f"Generated {datetime.utcnow():%Y-%m-%d %H:%M} UTC.  "
               f"GPR vintage ends {gpr_end:%Y-%m-%d}; tension index ends {ours.index.max():%Y-%m-%d}.\n"]
     summary_rows = []
+    overview = []
     for label, ocol, gcol, start in PAIRS:
         if ocol not in ours:
             continue
@@ -72,7 +75,7 @@ def main() -> None:
         both = pd.concat([x, y], axis=1).dropna()
         if len(both) < 100:
             continue
-        slug = label.split(" vs ")[0] + "_" + start[:4]
+        slug = label.split(" vs ")[0]
         report.append(f"\n## {label}\n")
         report.append(f"Sample: {both.index.min():%Y-%m-%d} to {both.index.max():%Y-%m-%d}, "
                       f"{len(both)} overlapping days.\n")
@@ -95,6 +98,11 @@ def main() -> None:
             report.append(f"- **{tr}**: best lag {s['best_lag']:+d} (r={s['corr_at_best']:.3f}; "
                           f"r at lag 0 = {s['corr_at_0']:.3f}) → {s['verdict']}")
         xcdf = pd.DataFrame(xcs)
+        det = lead_lag_summary(cross_correlation(x, y, max_lag=args.max_lag, transform="detrend"))
+        overview.append({"pair": label, "sample": f"{both.index.min():%Y-%m} to {both.index.max():%Y-%m}",
+                         "daily": tab.loc["daily", "pearson_level"],
+                         "dow": tab.loc["daily_dow_adj", "pearson_level"], "weekly": tab.loc["weekly", "pearson_level"],
+                         "monthly": tab.loc["monthly", "pearson_level"], **det})
         xcdf.to_csv(os.path.join(args.outdir, f"xcorr_{slug}.csv"))
         g = granger_style_lead(x, y)
         report.append(f"\nPredictive content on daily log changes (5 lags): adding tension-index lags to a regression of GPR "
@@ -115,7 +123,17 @@ def main() -> None:
         fig.savefig(os.path.join(args.outdir, f"xcorr_{slug}.png"), dpi=130)
         plt.close(fig)
 
-    pd.DataFrame(summary_rows).to_csv(os.path.join(args.outdir, "lead_lag_summary.csv"), index=False)
+    summ = pd.DataFrame(summary_rows)
+    summ.to_csv(os.path.join(args.outdir, "lead_lag_summary.csv"), index=False)
+    head = ["\n## Summary\n",
+            "Pearson correlations of index levels.  \"dow-adj\" removes each series' day-of-week means first.  "
+            "Lead/lag from daily log deviations from a trailing 30-day mean.\n",
+            "| series vs GPR | sample | daily r | daily r (dow-adj) | weekly r | monthly r | best lag | r at best lag | verdict |",
+            "|---|---|---|---|---|---|---|---|---|"]
+    for r in overview:
+        head.append(f"| {r['pair']} | {r['sample']} | {r['daily']:.3f} | {r['dow']:.3f} | {r['weekly']:.3f} "
+                    f"| {r['monthly']:.3f} | {r['best_lag']:+d} | {r['corr_at_best']:.3f} | {r['verdict']} |")
+    report[2:2] = head
 
     # Overview figure: monthly means of the index and GPR.
     if "tension_index" in ours:
@@ -131,7 +149,7 @@ def main() -> None:
         plt.close(fig)
 
         w = pd.concat({"tension_index": ours["tension_index"], "GPRD": gpr["GPRD"]}, axis=1)
-        w = w.loc["2021-06-01":gpr_end].resample("W-SUN").mean()
+        w = w.loc["2022-01-01":gpr_end].resample("W-SUN").mean()
         fig, ax = plt.subplots(figsize=(9, 3.6))
         ax.plot(w.index, w["GPRD"], label="GPR daily (weekly mean)", color="#444")
         ax.plot(w.index, w["tension_index"], label="tension index (weekly mean)", color="#c0392b")

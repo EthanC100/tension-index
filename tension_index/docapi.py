@@ -31,8 +31,19 @@ class RateLimited(RuntimeError):
     pass
 
 
-def _get(params: dict, tries: int = 15, timeout: int = 300) -> dict:
+class QueryTooLong(ValueError):
+    pass
+
+
+# Patience on rate limiting: number of attempts and the cap on the back-off.
+# The defaults suit a daily run; the history builder raises them.
+RATE_LIMIT_TRIES = 15
+RATE_LIMIT_MAX_DELAY = 180.0
+
+
+def _get(params: dict, tries: int | None = None, timeout: int = 300) -> dict:
     global _last_call
+    tries = tries or RATE_LIMIT_TRIES
     delay = 10.0
     for attempt in range(tries):
         wait = MIN_INTERVAL - (time.monotonic() - _last_call)
@@ -46,8 +57,10 @@ def _get(params: dict, tries: int = 15, timeout: int = 300) -> dict:
         if "limit requests" in text or r.status_code == 429:
             log.warning("GDELT rate limit hit (attempt %d); sleeping %.0fs", attempt + 1, delay)
             time.sleep(delay)
-            delay = min(delay * 1.6, 180)
+            delay = min(delay * 1.6, RATE_LIMIT_MAX_DELAY)
             continue
+        if "too short or too long" in text:
+            raise QueryTooLong(f"query of {len(params.get('query', ''))} chars rejected")
         raise RuntimeError(f"GDELT DOC API error ({r.status_code}): {text[:300]}")
     raise RateLimited("GDELT DOC API kept returning its rate-limit notice")
 

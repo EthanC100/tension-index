@@ -19,6 +19,9 @@ from datetime import datetime, timedelta
 
 import requests
 
+from .titles import CATEGORY_NAMES, classify, classify_variants, extract_title
+from .wordlists import ACT_CATEGORIES, THREAT_CATEGORIES
+
 log = logging.getLogger(__name__)
 
 BASE_URL = "https://data.gdeltproject.org/gdeltv2/"
@@ -70,7 +73,11 @@ COMPOSITES = ["gpr_like", "war_like", "terror_like", "nuclear_like", "buildup_li
 EVENT_ROOTS = ["13", "14", "15", "17", "18", "19", "20"]
 EVENT_QUADS = ["1", "2", "3", "4"]
 
-GKG_COLUMNS = (["gkg_total"] + [f"gkg_{t}" for t in THEMES] + [f"gkg_{c}" for c in COMPOSITES])
+TITLE_COLUMNS = (["gkg_title_records"] + [f"gkg_title_{c}" for c in CATEGORY_NAMES]
+                 + ["gkg_title_any", "gkg_title_threats", "gkg_title_acts",
+                    "gkg_title_and_any", "gkg_title_topic_any"])
+GKG_COLUMNS = (["gkg_total"] + [f"gkg_{t}" for t in THEMES] + [f"gkg_{c}" for c in COMPOSITES]
+               + TITLE_COLUMNS)
 EVT_COLUMNS = (
     ["evt_total", "evt_mentions"]
     + [f"evt_root{r}" for r in EVENT_ROOTS]
@@ -127,6 +134,18 @@ def parse_gkg(blob: bytes) -> dict[str, int]:
                 counts[f"gkg_{t}"] += 1
         for k, v in composite_flags(themes).items():
             counts[f"gkg_{k}"] += v
+        title = extract_title(f[26]) if len(f) > 26 else None
+        if title:
+            counts["gkg_title_records"] += 1
+            cats = classify(title)
+            for c, hit in cats.items():
+                counts[f"gkg_title_{c}"] += hit
+            counts["gkg_title_any"] += any(cats.values())
+            counts["gkg_title_threats"] += any(cats[c] for c in THREAT_CATEGORIES)
+            counts["gkg_title_acts"] += any(cats[c] for c in ACT_CATEGORIES)
+            var = classify_variants(title)
+            counts["gkg_title_and_any"] += var["and"]
+            counts["gkg_title_topic_any"] += var["topic"]
     return counts
 
 

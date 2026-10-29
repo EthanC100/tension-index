@@ -42,11 +42,15 @@ def daily_shares_from_slots(slots: pd.DataFrame, min_ok_slots: int = 4) -> pd.Da
     out["gkg_slots"] = g["gkg_slots"]
     out["evt_slots"] = e["evt_slots"]
     out["gkg_total"] = g["gkg_total"]
+    if "gkg_title_records" in g:
+        out["gkg_title_records"] = g["gkg_title_records"]
     out["evt_total"] = e["evt_total"]
     for c in gkg_cols:
-        if c == "gkg_total":
+        if c in ("gkg_total", "gkg_title_records"):
             continue
-        out[f"share_{c}"] = g[c] / g["gkg_total"]
+        # Headline shares are relative to records that carry a headline.
+        denom = g["gkg_title_records"] if c.startswith("gkg_title_") else g["gkg_total"]
+        out[f"share_{c}"] = g[c] / denom.where(denom > 0)
     for c in evt_cols:
         if c in ("evt_total", "evt_mentions"):
             continue
