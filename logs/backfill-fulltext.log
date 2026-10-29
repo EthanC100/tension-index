@@ -1,15 +1,18 @@
-2026-10-29 02:14:07,608 war_threats
-2026-10-29 02:14:07,609   war_threats#0/2 (452 chars, exclusions=False)
-2026-10-29 02:14:17,450 GDELT rate limit hit (attempt 1); sleeping 10s
-2026-10-29 02:14:37,660   rejected as too long at size 600; re-splitting
-2026-10-29 02:14:37,662   war_threats#0/3 (349 chars, exclusions=False)
-2026-10-29 02:14:54,121 GDELT rate limit hit (attempt 1); sleeping 10s
-2026-10-29 02:15:17,428 GDELT rate limit hit (attempt 2); sleeping 16s
-2026-10-29 02:15:45,940 GDELT rate limit hit (attempt 3); sleeping 26s
-2026-10-29 02:16:22,780 GDELT rate limit hit (attempt 4); sleeping 41s
-2026-10-29 02:17:16,782 GDELT rate limit hit (attempt 5); sleeping 66s
-2026-10-29 02:18:34,694 GDELT rate limit hit (attempt 6); sleeping 105s
-2026-10-29 02:20:30,734 GDELT rate limit hit (attempt 7); sleeping 168s
-2026-10-29 02:23:27,230 GDELT rate limit hit (attempt 8); sleeping 268s
-2026-10-29 02:28:05,055 GDELT rate limit hit (attempt 9); sleeping 429s
-2026-10-29 02:35:25,970 GDELT rate limit hit (attempt 10); sleeping 600s
+2026-10-29 02:51:05,321 war_threats
+2026-10-29 02:51:05,321   war_threats#0/2 (452 chars, exclusions=False)
+2026-10-29 02:51:16,470 GDELT rate limit hit (attempt 1); sleeping 10s
+2026-10-29 02:51:36,145   rejected as too long at size 600; re-splitting
+2026-10-29 02:51:36,146   war_threats#0/3 (349 chars, exclusions=False)
+2026-10-29 02:51:51,350 GDELT rate limit hit (attempt 1); sleeping 10s
+2026-10-29 02:52:11,782 GDELT rate limit hit (attempt 2); sleeping 16s
+2026-10-29 02:52:36,941   rejected as too long at size 420; re-splitting
+2026-10-29 02:52:36,942   war_threats#0/5 (283 chars, exclusions=False)
+2026-10-29 02:52:51,626 GDELT rate limit hit (attempt 1); sleeping 10s
+2026-10-29 02:53:10,545 GDELT rate limit hit (attempt 2); sleeping 16s
+2026-10-29 02:53:34,608 GDELT rate limit hit (attempt 3); sleeping 26s
+2026-10-29 02:54:08,587 GDELT rate limit hit (attempt 4); sleeping 41s
+2026-10-29 02:54:59,636 GDELT rate limit hit (attempt 5); sleeping 66s
+2026-10-29 02:56:15,714 GDELT rate limit hit (attempt 6); sleeping 105s
+2026-10-29 02:58:09,513 GDELT rate limit hit (attempt 7); sleeping 168s
+2026-10-29 03:01:17,929 GDELT rate limit hit (attempt 8); sleeping 268s
+2026-10-29 03:05:57,626 GDELT rate limit hit (attempt 9); sleeping 429s
