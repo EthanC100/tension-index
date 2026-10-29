@@ -257,8 +257,9 @@ with published GPR from 0.734 to 0.765 over 2019-09 → 2026-10.
 
 The full-text component is shelved. The tension index was closed as a
 trading signal: a test against gold and silver returns found no predictive
-value out of sample. That test is in the README section "Does the index predict gold and silver?" and [`reports/gold_test.md`](reports/gold_test.md). Completing the full-text
-history is therefore no longer worth the effort.
+value out of sample. That test is in the section "Does the index predict
+gold and silver?" below and in [`reports/gold_test.md`](reports/gold_test.md).
+Completing the full-text history is therefore no longer worth the effort.
 
 * **What exists.** The code is in place, and the English article totals for
   2017-01-01 to 2026-10-27 are in `data/history_fulltext.csv`. No category
