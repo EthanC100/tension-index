@@ -6,6 +6,9 @@ on:
     # day are complete by ~01:00 UTC; the full-text API usually follows
     # within hours (later days revise it, see --fulltext-days).
     - cron: "23 5 * * *"
+  push:  # TEMPORARY: one-off end-to-end test on the feature branch
+    branches: [claude/tension-index-gpr-zp1hcb]
+    paths: [".github/workflows/daily.yml"]
   workflow_dispatch:
     inputs:
       date:
