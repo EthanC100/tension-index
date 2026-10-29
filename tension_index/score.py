@@ -5,11 +5,11 @@ import numpy as np
 import pandas as pd
 
 # GPR's recent daily index is scaled so that it averages 100 over 1985–2019.
-# GDELT only reaches back to 2015 (and the full-text API to 2017), so the
-# tension index is scaled to average 100 over the overlap-friendly base period
-# below.  Shares are what matter for correlation; the base only sets the level.
-BASE_START = "2017-01-01"
-BASE_END = "2019-12-31"
+# GDELT reaches back only to 2015 (page titles to 2019-09), so the base period
+# is one in which every component exists; see series.py for the full
+# normalisation (which also anchors the level on GPR's own base-period mean).
+BASE_START = "2020-01-01"
+BASE_END = "2024-12-31"
 
 
 def normalize_like_gpr(share: pd.Series, base_start: str = BASE_START, base_end: str = BASE_END) -> pd.Series:

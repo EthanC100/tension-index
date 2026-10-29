@@ -43,7 +43,7 @@ def test_corr_by_frequency_shapes():
 def test_normalisation_base_mean_is_100():
     idx = pd.date_range("2016-01-01", "2021-12-31", freq="D")
     s = pd.Series(np.linspace(1, 2, len(idx)), index=idx)
-    n = normalize_like_gpr(s)
+    n = normalize_like_gpr(s, "2017-01-01", "2019-12-31")
     assert abs(n.loc["2017-01-01":"2019-12-31"].mean() - 100) < 1e-9
 
 
