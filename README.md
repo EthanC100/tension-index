@@ -252,39 +252,30 @@ with published GPR from 0.734 to 0.765 over 2019-09 → 2026-10.
 * The official daily GPR is posted once a week, on Mondays, and is revised
   in later vintages.
 
-### Full-text component: status
+### Full-text component: shelved
 
-The full-text component is fully implemented. Its history pull is blocked
-for now.
+The full-text component is shelved. The tension index was closed as a
+trading signal: a test against gold and silver returns found no predictive
+value out of sample. That test is in `reports/gold_test.md` on the branch
+`claude/tension-index-gpr-zp1hcb`. Completing the full-text history is
+therefore no longer worth the effort.
 
-* **What already worked.** The English article totals for 2017-01-01 to
-  2026-10-27 were pulled successfully, and are in `data/history_fulltext.csv`.
-* **What is blocked.** While this was built, on 2026-10-28/29, the DOC API
-  answered almost every category query with its rate-limit notice. This
-  happened from the development container and from GitHub-hosted runners,
-  even with ten-minute back-offs. GDELT's full-text index had also stopped
-  ingesting since about 2026-10-25.
-* **What happens next.** The workflow
-  [`backfill-fulltext.yml`](.github/workflows/backfill-fulltext.yml) is
-  resumable and commits progress every 15 minutes. Once every category is
-  in, it rebuilds `data/tension_daily.csv`, refits the normalisation and
-  regenerates the validation. `fulltext` then joins `tension_index`
-  automatically.
+* **What exists.** The code is in place, and the English article totals for
+  2017-01-01 to 2026-10-27 are in `data/history_fulltext.csv`. No category
+  counts were pulled. GDELT's DOC API refused almost every category query on
+  2026-10-28/29, from this project's container and from GitHub-hosted
+  runners alike.
+* **What runs.** The last backfill attempt was run 5, started 2026-10-29.
+  No further runs or retries are scheduled. The daily workflow keeps
+  publishing the index from the raw-file components. It skips the
+  full-text step because no query plan (`data/fulltext_plan.json`) exists
+  on the default branch.
 
-Until then:
+The published index is therefore built as follows:
 
-* the index since 2019-09 is `headline_topic`;
-* the index before 2019-09 is `theme`;
+* since 2019-09 it is `headline_topic`;
+* before 2019-09 it is `theme`;
 * the validation figures above are for those components.
-
-When the rebuild runs, `validation/report.md` is regenerated with the
-full-text component included. The tables in this README stay as of
-2026-10-29.
-
-A run stops after about five hours. To resume, open *Actions → Backfill
-full-text history* and either re-run the latest run or use *Run workflow*
-once the workflow is on the default branch. Categories already pulled are
-skipped. Progress is visible in `logs/backfill-fulltext.log` on the branch.
 
 ## Daily operation
 
@@ -346,7 +337,7 @@ overlap.
 * **Weaker before September 2019.** Page titles enter GKG only around
   September 2019. Before that, the index rests on GDELT's theme tagger, a
   proxy rather than the GPR word lists. It reaches only 0.34 daily and 0.62
-  monthly correlation. The full-text component, once backfilled, will cover
+  monthly correlation. The shelved full-text component would have covered
   2017–2019 with the word lists.
 * **Headlines are not articles.** The main component counts headlines, not
   article bodies. It uses GPR's topic words but not the threat and act

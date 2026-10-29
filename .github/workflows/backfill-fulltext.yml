@@ -49,7 +49,7 @@ jobs:
             done
           }
           # Stop after ~5h so the final commit always runs; re-run to resume.
-          timeout 18000 python scripts/build_history.py --patient \
+          timeout 18000 python -u scripts/build_history.py --patient \
               --end "$(date -u -d yesterday +%Y%m%d)" > logs/backfill-fulltext.log 2>&1 &
           pid=$!
           while kill -0 "$pid" 2>/dev/null; do

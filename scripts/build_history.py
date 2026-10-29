@@ -118,4 +118,8 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception:  # noqa: BLE001 - make failures visible in the progress log
+        logging.exception("build_history failed")
+        raise
