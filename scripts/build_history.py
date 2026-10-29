@@ -34,7 +34,10 @@ from tension_index import docapi, queries, wordlists  # noqa: E402
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 START = "20170101000000"  # the DOC API full-text archive begins 2017-01-01
-SIZE_STEPS = [1000, 700, 500, 350, 250, 180, 130]
+# Size budgets tried in turn.  A query of 318 characters ("war threat" plus
+# GPR's 34 exclusion words) is already rejected, so the exclusion words can
+# not be used with this API and are off by default (see README).
+SIZE_STEPS = [600, 420, 300, 210, 150, 100]
 
 
 def pull(q: str, end: str) -> pd.DataFrame:
@@ -44,8 +47,8 @@ def pull(q: str, end: str) -> pd.DataFrame:
     return df
 
 
-def pull_category(cat: str, end: str) -> tuple[dict, list[tuple[str, pd.DataFrame]]]:
-    for exclude in (True, False):
+def pull_category(cat: str, end: str, try_exclusions: bool = False) -> tuple[dict, list[tuple[str, pd.DataFrame]]]:
+    for exclude in ((True, False) if try_exclusions else (False,)):
         for size in SIZE_STEPS:
             try:
                 pieces = queries.category_pieces(cat, exclude=exclude, max_chars=size)
@@ -77,6 +80,7 @@ def main() -> None:
     ap.add_argument("--plan", default=os.path.join(ROOT, "data", "fulltext_plan.json"))
     ap.add_argument("--end", default=(date.today() - timedelta(days=1)).strftime("%Y%m%d"))
     ap.add_argument("--patient", action="store_true", help="wait up to ~10 min per rate-limit back-off")
+    ap.add_argument("--try-exclusions", action="store_true", help="first try with GPR's exclusion words")
     args = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
     if args.patient:
@@ -100,7 +104,7 @@ def main() -> None:
         if cat in done:
             continue
         logging.info("%s", cat)
-        meta, got = pull_category(cat, args.end)
+        meta, got = pull_category(cat, args.end, args.try_exclusions)
         for label, df in got:
             write(args.out, label, df)
         plan[cat] = meta

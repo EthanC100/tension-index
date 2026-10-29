@@ -32,21 +32,29 @@ jobs:
 
       - run: pip install -r requirements.txt
 
-      - name: Pull full-text history
-        # Stop after ~5h so the commit step always runs; re-run to resume.
-        run: timeout 18000 python scripts/build_history.py --patient --end "$(date -u -d yesterday +%Y%m%d)" || true
-
-      - name: Commit and push
+      - name: Pull full-text history (commits progress every 15 minutes)
         run: |
           git config user.name "tension-index bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/history_fulltext.csv data/fulltext_plan.json || true
-          if git diff --cached --quiet; then
-            echo "nothing to commit"
-            exit 0
-          fi
-          git commit -m "data: full-text history from the GDELT DOC API"
-          for i in 1 2 3; do
-            git pull --rebase origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && break
-            sleep $((i * 10))
+          mkdir -p logs
+          commit_progress() {
+            git add data/history_fulltext.csv logs/backfill-fulltext.log
+            [ -f data/fulltext_plan.json ] && git add data/fulltext_plan.json
+            git diff --cached --quiet && return 0
+            git commit -q -m "data: full-text history progress ($1)"
+            for i in 1 2 3; do
+              git pull -q --rebase origin "${GITHUB_REF_NAME}" && git push -q origin "HEAD:${GITHUB_REF_NAME}" && return 0
+              sleep $((i * 10))
+            done
+          }
+          # Stop after ~5h so the final commit always runs; re-run to resume.
+          timeout 18000 python scripts/build_history.py --patient \
+              --end "$(date -u -d yesterday +%Y%m%d)" > logs/backfill-fulltext.log 2>&1 &
+          pid=$!
+          while kill -0 "$pid" 2>/dev/null; do
+            for _ in $(seq 90); do kill -0 "$pid" 2>/dev/null || break; sleep 10; done
+            commit_progress "running"
           done
+          wait "$pid" || echo "build_history exited with $?"
+          tail -n 40 logs/backfill-fulltext.log
+          commit_progress "finished"
