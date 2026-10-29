@@ -1,0 +1,33 @@
+{
+  "english_total": {
+    "queries": [
+      "sourcelang:english"
+    ]
+  },
+  "war_threats": {
+    "max_chars": 210,
+    "exclude": false,
+    "queries": [
+      "(war OR conflict OR hostilities OR revolution OR revolutions OR revolutionary) (threat OR threats OR threaten OR threatens OR threatened OR threatening OR warn OR warns OR warned) sourcelang:english",
+      "(war OR conflict OR hostilities OR revolution OR revolutions OR revolutionary) (warning OR warnings OR fear OR fears OR feared OR fearing OR fearful OR risk OR risks) sourcelang:english",
+      "(war OR conflict OR hostilities OR revolution OR revolutions OR revolutionary) (risked OR risky OR concern OR concerns OR concerned OR concerning OR danger OR dangers OR dangerous) sourcelang:english",
+      "(war OR conflict OR hostilities OR revolution OR revolutions OR revolutionary) (doubt OR doubts OR doubted OR doubtful OR crisis OR trouble OR troubles OR troubled OR troubling) sourcelang:english",
+      "(war OR conflict OR hostilities OR revolution OR revolutions OR revolutionary) (dispute OR disputes OR disputed OR tension OR tensions OR imminent OR imminence OR inevitable OR footing) sourcelang:english",
+      "(war OR conflict OR hostilities OR revolution OR revolutions OR revolutionary) (menace OR menaces OR menaced OR menacing OR brink OR scare OR peril OR perils OR perilous) sourcelang:english",
+      "(insurrection OR uprising OR revolt OR coup OR geopolitical) (threat OR threats OR threaten OR threatens OR threatened OR threatening OR warn OR warns OR warned) sourcelang:english",
+      "(insurrection OR uprising OR revolt OR coup OR geopolitical) (warning OR warnings OR fear OR fears OR feared OR fearing OR fearful OR risk OR risks) sourcelang:english",
+      "(insurrection OR uprising OR revolt OR coup OR geopolitical) (risked OR risky OR concern OR concerns OR concerned OR concerning OR danger OR dangers OR dangerous) sourcelang:english",
+      "(insurrection OR uprising OR revolt OR coup OR geopolitical) (doubt OR doubts OR doubted OR doubtful OR crisis OR trouble OR troubles OR troubled OR troubling) sourcelang:english",
+      "(insurrection OR uprising OR revolt OR coup OR geopolitical) (dispute OR disputes OR disputed OR tension OR tensions OR imminent OR imminence OR inevitable OR footing) sourcelang:english",
+      "(insurrection OR uprising OR revolt OR coup OR geopolitical) (menace OR menaces OR menaced OR menacing OR brink OR scare OR peril OR perils OR perilous) sourcelang:english"
+    ]
+  },
+  "peace_threats": {
+    "max_chars": 300,
+    "exclude": false,
+    "queries": [
+      "(peace OR truce OR armistice OR treaty OR parley) (threat OR threats OR threaten OR threatens OR threatened OR threatening OR menace OR menaces OR menaced OR menacing OR reject OR rejects) sourcelang:english",
+      "(peace OR truce OR armistice OR treaty OR parley) (rejected OR rejection OR peril OR perils OR perilous OR boycott OR boycotts OR boycotted OR disrupt OR disrupts OR disrupted OR disruption) sourcelang:english"
+    ]
+  }
+}
