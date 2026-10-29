@@ -1,0 +1,14 @@
+2026-10-29 02:14:07,608 war_threats
+2026-10-29 02:14:07,609   war_threats#0/2 (452 chars, exclusions=False)
+2026-10-29 02:14:17,450 GDELT rate limit hit (attempt 1); sleeping 10s
+2026-10-29 02:14:37,660   rejected as too long at size 600; re-splitting
+2026-10-29 02:14:37,662   war_threats#0/3 (349 chars, exclusions=False)
+2026-10-29 02:14:54,121 GDELT rate limit hit (attempt 1); sleeping 10s
+2026-10-29 02:15:17,428 GDELT rate limit hit (attempt 2); sleeping 16s
+2026-10-29 02:15:45,940 GDELT rate limit hit (attempt 3); sleeping 26s
+2026-10-29 02:16:22,780 GDELT rate limit hit (attempt 4); sleeping 41s
+2026-10-29 02:17:16,782 GDELT rate limit hit (attempt 5); sleeping 66s
+2026-10-29 02:18:34,694 GDELT rate limit hit (attempt 6); sleeping 105s
+2026-10-29 02:20:30,734 GDELT rate limit hit (attempt 7); sleeping 168s
+2026-10-29 02:23:27,230 GDELT rate limit hit (attempt 8); sleeping 268s
+2026-10-29 02:28:05,055 GDELT rate limit hit (attempt 9); sleeping 429s
