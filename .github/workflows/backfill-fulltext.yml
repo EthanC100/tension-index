@@ -38,7 +38,8 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           mkdir -p logs
           commit_progress() {
-            git add data/history_fulltext.csv logs/backfill-fulltext.log
+            git add data/history_fulltext.csv || true
+            git add -f logs/backfill-fulltext.log || true
             [ -f data/fulltext_plan.json ] && git add data/fulltext_plan.json
             git diff --cached --quiet && return 0
             git commit -q -m "data: full-text history progress ($1)"
