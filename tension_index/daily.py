@@ -13,6 +13,7 @@ Each run:
 """
 from __future__ import annotations
 
+import io
 import logging
 import os
 from concurrent.futures import ThreadPoolExecutor
@@ -97,7 +98,18 @@ def run(day: str, csv_path: str, norm_path: str, ft_days: int = 10,
         if c not in out:
             out[c] = np.nan
     out = out[COLUMNS]
-    out.to_csv(csv_path, index=False, float_format="%.6g")
+    # Rewrite only the rows inside the refreshed window; every other row is
+    # copied through byte-for-byte so the history does not churn.
+    win = set(out.loc[touched, "date"])
+    buf = io.StringIO()
+    out[out["date"].isin(win)].to_csv(buf, index=False, float_format="%.6g")
+    buf.seek(0)
+    fresh = pd.read_csv(buf, dtype=str, keep_default_na=False)
+    if os.path.exists(csv_path) and os.path.getsize(csv_path) > 0:
+        kept = pd.read_csv(csv_path, dtype=str, keep_default_na=False)
+        kept = kept[~kept["date"].isin(win)].reindex(columns=COLUMNS, fill_value="")
+        fresh = pd.concat([kept, fresh], ignore_index=True)
+    fresh.sort_values("date").to_csv(csv_path, index=False)
     return out
 
 
