@@ -1,0 +1,5 @@
+spec,period,signals,trades,mean_net_pct,median_net_pct,hit_rate,total_net_pct,mean_net_ex5best_pct,total_net_ex5best_pct,uncond_5d_mean_net_pct,random_entry_p,buy_hold_pct,days_invested_share
+as_specified,train,107,77,0.141938,0.0596966,0.506494,9.58885,-0.145213,-11.1121,0.0615563,0.3778,34.019,0.352887
+as_specified,test,63,48,0.227287,0.103965,0.5,8.7625,-0.512334,-20.9178,0.430651,0.7006,96.5178,0.338028
+implementable,train,107,77,0.281252,0.378176,0.558442,21.7364,-0.0661347,-5.87434,0.0615563,0.2034,34.019,0.352887
+implementable,test,63,48,0.330816,0.419272,0.5625,14.1192,-0.372026,-16.1372,0.430651,0.6102,96.5178,0.338028

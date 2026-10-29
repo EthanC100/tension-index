@@ -1,0 +1,9 @@
+metal,period,model,coef_z_tension,t,p,n
+gold,train,tension,0.0641212,2.10617,0.0351893,1070
+gold,train,tension+controls,0.0400031,1.5371,0.124268,1070
+gold,test,tension,0.0952731,1.57763,0.114652,699
+gold,test,tension+controls,0.0954262,1.67299,0.0943285,699
+silver,train,tension,0.154558,2.31887,0.0204019,1070
+silver,train,tension+controls,0.121786,2.05434,0.0399424,1070
+silver,test,tension,0.210503,1.47194,0.141036,699
+silver,test,tension+controls,0.204076,1.48019,0.138823,699

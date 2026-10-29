@@ -81,3 +81,34 @@ def test_fulltext_upsert_and_complete_days(tmp_path):
     counts = counts[~((counts["category"] == "terror_acts#0") & (counts["date"] == "2024-01-20"))]
     sh = fulltext.shares(counts, labels)
     assert np.isnan(sh.loc["2024-01-20", "ft_share_any"])
+
+
+def test_ols_hac_recovers_slope_and_lag0_matches_white():
+    from tension_index.predict import ols_hac
+    rng = np.random.default_rng(1)
+    x = pd.Series(rng.normal(size=4000))
+    y = 0.5 + 2.0 * x + pd.Series(rng.normal(size=4000))
+    res = ols_hac(y, pd.DataFrame({"x": x}), lags=0)
+    assert abs(res.beta[1] - 2.0) < 0.05 and abs(res.beta[0] - 0.5) < 0.05
+    assert abs(res.se[1] - 1 / np.sqrt(4000)) < 0.003
+
+
+def test_event_trades_no_stacking_and_delay():
+    from tension_index.predict import event_trades
+    idx = pd.date_range("2024-01-01", periods=30, freq="B")
+    px = pd.Series(np.arange(100.0, 130.0), index=idx)
+    sig = pd.Series(False, index=idx)
+    sig.iloc[[2, 4, 9]] = True  # day 4 falls inside the trade opened on day 2
+    t = event_trades(px, sig, hold=5, delay=1, cost=0.001)
+    assert list(t["entry"]) == [idx[3], idx[10]]
+    assert abs(t["gross"].iloc[0] - (108.0 / 103.0 - 1)) < 1e-12
+    assert abs(t["net"].iloc[0] - (t["gross"].iloc[0] - 0.001)) < 1e-12
+
+
+def test_dm_test_prefers_better_forecast():
+    from tension_index.predict import dm_test
+    rng = np.random.default_rng(2)
+    e_bad = rng.normal(scale=2.0, size=2000)
+    e_good = rng.normal(scale=1.0, size=2000)
+    stat, p = dm_test(e_bad, e_good, lags=1)
+    assert stat > 0 and p < 0.001

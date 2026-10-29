@@ -1,0 +1,9 @@
+period,gold return,signal,coef_bp_per_sd,t,n
+train,same day,z_gpr,1.36553,0.421493,1091
+train,same day,z_tension,6.41212,2.10617,1070
+train,next day (from today's close),z_gpr,6.10537,1.93563,1091
+train,next day (from today's close),z_tension,-5.50078,-1.7038,1070
+test,same day,z_gpr,4.48666,0.714426,708
+test,same day,z_tension,9.52731,1.57763,699
+test,next day (from today's close),z_gpr,-4.24916,-0.606357,708
+test,next day (from today's close),z_tension,3.93207,0.651645,698
