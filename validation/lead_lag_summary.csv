@@ -1,0 +1,33 @@
+pair,transform,best_lag,corr_at_best,corr_at_0,verdict
+"gpr_nowcast vs GPRD (both as published, with weekday pattern)",level,0,0.6620008437741786,0.6620008437741786,matches
+"gpr_nowcast vs GPRD (both as published, with weekday pattern)",log,0,0.6008006822876398,0.6008006822876398,matches
+"gpr_nowcast vs GPRD (both as published, with weekday pattern)",detrend,0,0.5182367978999817,0.5182367978999817,matches
+"gpr_nowcast vs GPRD (both as published, with weekday pattern)",diff,0,0.4014870671403778,0.4014870671403778,matches
+tension_index vs GPRD_SA,level,1,0.6033650913953549,0.5872413666474408,leads by 1 day(s)
+tension_index vs GPRD_SA,log,1,0.4998897335426114,0.4790718527681054,leads by 1 day(s)
+tension_index vs GPRD_SA,detrend,1,0.3050250374782596,0.26739269626431733,leads by 1 day(s)
+tension_index vs GPRD_SA,diff,1,0.08343166848024272,0.010104519801809155,leads by 1 day(s)
+tension_index_threats vs GPRD_THREAT_SA,level,1,0.4484030579676392,0.3983913780933795,leads by 1 day(s)
+tension_index_threats vs GPRD_THREAT_SA,log,1,0.40807109824631077,0.3632221975115284,leads by 1 day(s)
+tension_index_threats vs GPRD_THREAT_SA,detrend,1,0.20583212210375926,0.14156123615658936,leads by 1 day(s)
+tension_index_threats vs GPRD_THREAT_SA,diff,1,0.09906731985458389,-0.040151854195062314,leads by 1 day(s)
+tension_index_acts vs GPRD_ACT_SA,level,1,0.26533057951120304,0.25953652618648176,matches
+tension_index_acts vs GPRD_ACT_SA,log,1,0.3348263414717072,0.33236043840134866,matches
+tension_index_acts vs GPRD_ACT_SA,detrend,1,0.17040508118555822,0.1656143153610869,matches
+tension_index_acts vs GPRD_ACT_SA,diff,-3,0.04351814098866674,0.031391166323435644,lags by 3 day(s)
+idx_headline vs GPRD_SA,level,1,0.43335861165603917,0.4062937177282118,leads by 1 day(s)
+idx_headline vs GPRD_SA,log,1,0.4496865315524143,0.4214028306189868,leads by 1 day(s)
+idx_headline vs GPRD_SA,detrend,1,0.20917167785325116,0.16504830066883147,leads by 1 day(s)
+idx_headline vs GPRD_SA,diff,1,0.08247261680315701,0.005977744984612046,leads by 1 day(s)
+idx_headline_and vs GPRD_SA,level,1,0.518187463149927,0.497097959584295,leads by 1 day(s)
+idx_headline_and vs GPRD_SA,log,1,0.5100883385757613,0.4857096739738602,leads by 1 day(s)
+idx_headline_and vs GPRD_SA,detrend,1,0.24000418613601504,0.2004193946803832,leads by 1 day(s)
+idx_headline_and vs GPRD_SA,diff,1,0.09446003914635334,0.008861744558101698,leads by 1 day(s)
+idx_headline_topic vs GPRD_SA,level,1,0.6859951461314053,0.6747118267144498,leads by 1 day(s)
+idx_headline_topic vs GPRD_SA,log,1,0.6157537916515334,0.5967564642828596,leads by 1 day(s)
+idx_headline_topic vs GPRD_SA,detrend,1,0.3334297142855711,0.29501963169484546,leads by 1 day(s)
+idx_headline_topic vs GPRD_SA,diff,1,0.09294655037064407,0.019369983972166646,leads by 1 day(s)
+idx_theme vs GPRD_SA,level,1,0.472866589986785,0.44322765429992433,leads by 1 day(s)
+idx_theme vs GPRD_SA,log,1,0.4143679729949929,0.38846476131470803,leads by 1 day(s)
+idx_theme vs GPRD_SA,detrend,1,0.3258263231975863,0.2810325252950839,leads by 1 day(s)
+idx_theme vs GPRD_SA,diff,1,0.08252536021941179,0.004979956708005115,leads by 1 day(s)

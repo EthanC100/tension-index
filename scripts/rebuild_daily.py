@@ -17,7 +17,7 @@ import argparse
 import glob
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 
 import numpy as np
 import pandas as pd
@@ -55,7 +55,9 @@ def main() -> None:
     ap.add_argument("--fulltext", default=os.path.join(ROOT, "data", "history_fulltext.csv"))
     ap.add_argument("--slots", default=os.path.join(ROOT, "data", "raw", "raw_slots*.csv.gz"))
     ap.add_argument("--gpr", default=DAILY_URL)
-    ap.add_argument("--composite", default="fulltext,headline")
+    ap.add_argument("--composite", default="fulltext,headline_topic")
+    ap.add_argument("--fallback", default="theme")
+    ap.add_argument("--subindex", default="fulltext,headline")
     ap.add_argument("--out", default=os.path.join(ROOT, "data", "tension_daily.csv"))
     ap.add_argument("--daily-components", default=os.path.join(ROOT, "data", "raw_slots_daily.csv"))
     ap.add_argument("--norm", default=os.path.join(ROOT, "data", "normalisation.json"))
@@ -76,7 +78,9 @@ def main() -> None:
     gpr = load_daily_gpr(args.gpr)
     norm = series.fit_normalisation(df, gpr)
     norm["composite"] = args.composite.split(",")
-    norm["built_at"] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+    norm["fallback"] = [c for c in args.fallback.split(",") if c]
+    norm["subindex_components"] = args.subindex.split(",")
+    norm["built_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     series.save_norm(norm, args.norm)
 
     out = series.apply_normalisation(df, norm, norm["composite"])

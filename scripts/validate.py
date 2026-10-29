@@ -20,22 +20,34 @@ import pandas as pd  # noqa: E402
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from tension_index.gpr import DAILY_URL, load_daily_gpr  # noqa: E402
+from tension_index.series import BASE_END, BASE_START  # noqa: E402
 from tension_index.validation import (corr_by_frequency, cross_correlation,  # noqa: E402
                                       granger_style_lead, lead_lag_summary)
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 
 PAIRS = [
-    # (label, our column, GPR column, earliest start)
-    ("tension_index vs GPRD", "tension_index", "GPRD", "2015-01-01"),
-    ("tension_index_threats vs GPRD_THREAT", "tension_index_threats", "GPRD_THREAT", "2015-01-01"),
-    ("tension_index_acts vs GPRD_ACT", "tension_index_acts", "GPRD_ACT", "2015-01-01"),
-    ("idx_fulltext vs GPRD", "idx_fulltext", "GPRD", "2017-01-01"),
-    ("idx_headline vs GPRD", "idx_headline", "GPRD", "2019-09-01"),
-    ("idx_headline_and vs GPRD", "idx_headline_and", "GPRD", "2019-09-01"),
-    ("idx_headline_topic vs GPRD", "idx_headline_topic", "GPRD", "2019-09-01"),
-    ("idx_theme vs GPRD", "idx_theme", "GPRD", "2015-01-01"),
+    # (label, our column, GPR column, earliest start).  "_SA" = GPR with its
+    # own day-of-week pattern removed (factors estimated over the base period).
+    ("gpr_nowcast vs GPRD (both as published, with weekday pattern)", "gpr_nowcast", "GPRD", "2015-01-01"),
+    ("tension_index vs GPRD_SA", "tension_index", "GPRD_SA", "2015-01-01"),
+    ("tension_index_threats vs GPRD_THREAT_SA", "tension_index_threats", "GPRD_THREAT_SA", "2015-01-01"),
+    ("tension_index_acts vs GPRD_ACT_SA", "tension_index_acts", "GPRD_ACT_SA", "2015-01-01"),
+    ("idx_fulltext vs GPRD_SA", "idx_fulltext", "GPRD_SA", "2017-01-01"),
+    ("idx_headline vs GPRD_SA", "idx_headline", "GPRD_SA", "2019-09-01"),
+    ("idx_headline_and vs GPRD_SA", "idx_headline_and", "GPRD_SA", "2019-09-01"),
+    ("idx_headline_topic vs GPRD_SA", "idx_headline_topic", "GPRD_SA", "2019-09-01"),
+    ("idx_theme vs GPRD_SA", "idx_theme", "GPRD_SA", "2015-01-01"),
 ]
+
+
+def add_seasonally_adjusted(gpr: pd.DataFrame, base_start: str, base_end: str) -> pd.DataFrame:
+    out = gpr.copy()
+    for col in ["GPRD", "GPRD_THREAT", "GPRD_ACT"]:
+        b = gpr[col].loc[base_start:base_end]
+        f = b.groupby(b.index.dayofweek).mean() / b.mean()
+        out[f"{col}_SA"] = gpr[col] / f.reindex(gpr.index.dayofweek).to_numpy()
+    return out
 
 
 def md_table(df: pd.DataFrame, floatfmt: str = "{:.3f}") -> str:
@@ -60,7 +72,9 @@ def main() -> None:
     ours = pd.read_csv(args.daily, parse_dates=["date"]).set_index("date")
     gpr = load_daily_gpr(args.gpr)
     gpr_end = gpr.index.max()
-    gpr.to_csv(os.path.join(args.outdir, "gpr_daily_vintage.csv"), float_format="%.6g")
+    if not args.gpr.endswith(".csv"):
+        gpr.to_csv(os.path.join(args.outdir, "gpr_daily_vintage.csv"), float_format="%.6g")
+    gpr = add_seasonally_adjusted(gpr, BASE_START, BASE_END)
 
     report = [f"# Validation against the daily GPR index\n",
               f"Generated {datetime.utcnow():%Y-%m-%d %H:%M} UTC.  "
@@ -76,6 +90,7 @@ def main() -> None:
         if len(both) < 100:
             continue
         slug = label.split(" vs ")[0]
+        gcol_label = gcol
         report.append(f"\n## {label}\n")
         report.append(f"Sample: {both.index.min():%Y-%m-%d} to {both.index.max():%Y-%m-%d}, "
                       f"{len(both)} overlapping days.\n")
@@ -99,6 +114,8 @@ def main() -> None:
                           f"r at lag 0 = {s['corr_at_0']:.3f}) → {s['verdict']}")
         xcdf = pd.DataFrame(xcs)
         det = lead_lag_summary(cross_correlation(x, y, max_lag=args.max_lag, transform="detrend"))
+        lev_s = lead_lag_summary(cross_correlation(x, y, max_lag=args.max_lag, transform="level"))
+        det["level_lag"] = lev_s["best_lag"]
         overview.append({"pair": label, "sample": f"{both.index.min():%Y-%m} to {both.index.max():%Y-%m}",
                          "daily": tab.loc["daily", "pearson_level"],
                          "dow": tab.loc["daily_dow_adj", "pearson_level"], "weekly": tab.loc["weekly", "pearson_level"],
@@ -128,17 +145,18 @@ def main() -> None:
     head = ["\n## Summary\n",
             "Pearson correlations of index levels.  \"dow-adj\" removes each series' day-of-week means first.  "
             "Lead/lag from daily log deviations from a trailing 30-day mean.\n",
-            "| series vs GPR | sample | daily r | daily r (dow-adj) | weekly r | monthly r | best lag | r at best lag | verdict |",
-            "|---|---|---|---|---|---|---|---|---|"]
+            "| series vs GPR | sample | daily r | daily r (dow-adj) | weekly r | monthly r | best lag (levels) | best lag (detrended) | r at best lag (detrended) | verdict (detrended) |",
+            "|---|---|---|---|---|---|---|---|---|---|"]
     for r in overview:
         head.append(f"| {r['pair']} | {r['sample']} | {r['daily']:.3f} | {r['dow']:.3f} | {r['weekly']:.3f} "
-                    f"| {r['monthly']:.3f} | {r['best_lag']:+d} | {r['corr_at_best']:.3f} | {r['verdict']} |")
+                    f"| {r['monthly']:.3f} | {r['level_lag']:+d} | {r['best_lag']:+d} | {r['corr_at_best']:.3f} | {r['verdict']} |")
     report[2:2] = head
 
     # Overview figure: monthly means of the index and GPR.
     if "tension_index" in ours:
         m = pd.concat({"tension_index": ours["tension_index"], "GPRD": gpr["GPRD"]}, axis=1)
-        m = m.loc["2017-01-01":gpr_end].resample("MS").mean()
+        m = m.loc[ours["tension_index"].first_valid_index():]
+        m = m.loc[:gpr_end].resample("MS").mean()
         fig, ax = plt.subplots(figsize=(9, 3.6))
         ax.plot(m.index, m["GPRD"], label="GPR daily (monthly mean)", color="#444")
         ax.plot(m.index, m["tension_index"], label="tension index (monthly mean)", color="#c0392b")

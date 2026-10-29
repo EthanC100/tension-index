@@ -30,7 +30,7 @@ log = logging.getLogger(__name__)
 HOURS = tuple(range(24))
 
 COLUMNS = (
-    ["date", "tension_index", "tension_index_threats", "tension_index_acts", "tension_sources",
+    ["date", "tension_index", "gpr_nowcast", "tension_index_threats", "tension_index_acts", "tension_sources",
      "idx_fulltext", "idx_headline", "idx_headline_and", "idx_headline_topic", "idx_theme",
      "idx_fulltext_threats", "idx_fulltext_acts", "idx_headline_threats", "idx_headline_acts",
      "ft_english_articles", "ft_coverage", "ft_share_any", "ft_share_threats", "ft_share_acts"]

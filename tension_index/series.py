@@ -102,17 +102,34 @@ def fit_normalisation(df: pd.DataFrame, gpr: pd.DataFrame) -> dict:
             if comp == "fulltext":
                 s = s[ft_ok(base)]
             norm["share_base_mean"][col] = float(s.mean())
+            # Day-of-week factors (mean share on each weekday / overall mean).
+            # Online news shares of conflict coverage rise at weekends while
+            # GPR's newspaper shares fall, so both are adjusted explicitly.
+            wd = s.groupby(s.index.dayofweek).mean() / s.mean()
+            norm.setdefault("share_dow_factor", {})[col] = [float(wd.get(i, 1.0)) for i in range(7)]
+    gw = g["GPRD"].groupby(g.index.dayofweek).mean() / g["GPRD"].mean()
+    norm["gpr_dow_factor"] = [float(gw.get(i, 1.0)) for i in range(7)]
     return norm
+
+
+def gpr_dow_adjusted(gpr: pd.Series, norm: dict) -> pd.Series:
+    """GPR with its own (newspaper) day-of-week pattern removed."""
+    f = np.asarray(norm["gpr_dow_factor"])[gpr.index.dayofweek]
+    return gpr / f
 
 
 def apply_normalisation(df: pd.DataFrame, norm: dict, composite: list[str]) -> pd.DataFrame:
     out = df.copy()
     sb, gb = norm["share_base_mean"], norm["gpr_base_mean"]
+    dowf = norm.get("share_dow_factor", {})
+    wd = out.index.dayofweek
+
     def scaled(col: str, gkey: str) -> pd.Series:
         base = sb.get(col)
         if col not in out or not base or base != base:  # missing or NaN base mean
             return pd.Series(np.nan, index=out.index)
-        return out[col] / base * gb[gkey]
+        f = np.asarray(dowf.get(col, [1.0] * 7))[wd]
+        return out[col] / f / base * gb[gkey]
 
     for comp, (c_any, c_thr, c_act) in COMPONENTS.items():
         out[f"idx_{comp}"] = scaled(c_any, "GPRD")
@@ -122,13 +139,28 @@ def apply_normalisation(df: pd.DataFrame, norm: dict, composite: list[str]) -> p
     ok_ft = ft_ok(out) if "ft_coverage" in out else pd.Series(False, index=out.index)
     for col in [c for c in out.columns if c.startswith("idx_fulltext")]:
         out.loc[~ok_ft, col] = np.nan
-    # Composite: mean of the available listed components.
-    for suffix in ["", "_threats", "_acts"]:
-        cols = [f"idx_{c}{suffix}" for c in composite if f"idx_{c}{suffix}" in out]
-        out[f"tension_index{suffix}"] = out[cols].mean(axis=1, skipna=True) if cols else np.nan
+    # Composite: mean of the available primary components; on days with none
+    # of them, mean of the available fallback components.
+    def combine(names: list[str], suffix: str) -> pd.Series:
+        cols = [f"idx_{c}{suffix}" for c in names if f"idx_{c}{suffix}" in out]
+        if not cols:
+            return pd.Series(np.nan, index=out.index)
+        return out[cols].mean(axis=1, skipna=True)
+
+    fallback = norm.get("fallback", [])
+    sub = norm.get("subindex_components", ["fulltext", "headline"])
+    out["tension_index"] = combine(composite, "").fillna(combine(fallback, ""))
+    out["tension_index_threats"] = combine(sub, "_threats")
+    out["tension_index_acts"] = combine(sub, "_acts")
+    # GPR-scale nowcast: the weekday-neutral index with GPR's own weekday
+    # pattern put back, for direct comparison with the published daily GPR.
+    out["gpr_nowcast"] = out["tension_index"] * np.asarray(norm.get("gpr_dow_factor", [1.0] * 7))[wd]
     srcs = []
     for _, r in out.iterrows():
-        srcs.append("+".join(c for c in composite if pd.notna(r.get(f"idx_{c}"))))
+        used = [c for c in composite if pd.notna(r.get(f"idx_{c}"))]
+        if not used:
+            used = [c for c in fallback if pd.notna(r.get(f"idx_{c}"))]
+        srcs.append("+".join(used))
     out["tension_sources"] = srcs
     return out
 

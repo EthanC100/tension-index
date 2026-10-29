@@ -12,6 +12,8 @@ DAILY_URL = "https://www.matteoiacoviello.com/gpr_files/data_gpr_daily_recent.xl
 def load_daily_gpr(path_or_url: str = DAILY_URL) -> pd.DataFrame:
     """Return a DataFrame indexed by date with columns GPRD, GPRD_ACT,
     GPRD_THREAT, N10D (number of articles in the 10 newspapers)."""
+    if path_or_url.endswith(".csv"):
+        return pd.read_csv(path_or_url, parse_dates=["date"]).set_index("date").sort_index()
     if path_or_url.startswith("http"):
         r = requests.get(path_or_url, timeout=120)
         r.raise_for_status()
